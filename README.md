@@ -1,4 +1,4 @@
-# HelloApi: a 2-hour hands-on lab, explained for beginners
+# HelloApi: a hands-on lab
 
 **Who this is for:** someone with zero to basic knowledge who wants to understand API programming, GitHub, Azure, Key Vault, AKS and APIM well enough to talk about them confidently in an interview.
 
