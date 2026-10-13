@@ -1,0 +1,39 @@
+# CI = CONTINUOUS INTEGRATION: a robot that builds and checks the code every time someone pushes.
+# WHY: it catches broken code early, before it reaches main or production.
+name: CI
+
+# WHEN it runs: on every push to main, and on every pull request targeting main.
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    # GitHub lends us a fresh Linux machine for each run (free for private repos within limits).
+    runs-on: ubuntu-latest
+    steps:
+      # The machine starts empty, so first download your code onto it.
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # Same commands you run on your laptop. If they work here, the build is reproducible.
+      - name: Restore packages
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      # Add this once you create a test project. Failing tests would block the merge.
+      # - name: Test
+      #   run: dotnet test --configuration Release --no-build
+
+      # Checks the Dockerfile works, so a broken image is caught before deployment.
+      - name: Check the Docker image builds
+        run: docker build -t helloapi:ci .

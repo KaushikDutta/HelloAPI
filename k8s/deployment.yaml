@@ -1,0 +1,55 @@
+# DEPLOYMENT: tells Kubernetes the DESIRED STATE: "keep 2 copies of this app running".
+# If a copy dies, Kubernetes starts a new one. You declare what you want; it makes it so.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloapi
+spec:
+  replicas: 2                # two pods: one can fail while the other keeps serving
+  selector:
+    matchLabels:
+      app: helloapi          # "manage the pods that carry this label"
+  template:                  # the blueprint for each pod
+    metadata:
+      labels:
+        app: helloapi
+        # Tells the workload identity add-on to give this pod an Azure identity (Stage 5b).
+        azure.workload.identity/use: "true"
+    spec:
+      # The Kubernetes ServiceAccount (defined in service.yaml) linked to the Azure identity.
+      serviceAccountName: helloapi-sa
+      containers:
+        - name: helloapi
+          # The image we built with "az acr build". REPLACE <ACR_NAME> with your registry name.
+          image: <ACR_NAME>.azurecr.io/helloapi:v1
+          ports:
+            - containerPort: 8080     # must match ASPNETCORE_URLS in the Dockerfile
+          env:
+            # Double underscore means a colon in .NET configuration: KeyVault__Uri = KeyVault:Uri.
+            # Empty = Key Vault off. In Stage 5b set it to https://<VAULT>.vault.azure.net/
+            - name: KeyVault__Uri
+              value: ""
+          # REQUESTS = what Kubernetes reserves for the pod. LIMITS = the most it may use.
+          # Without these, one greedy pod can starve the others (a "noisy neighbor").
+          resources:
+            requests:
+              cpu: 100m           # 100 millicores = 0.1 of a CPU core
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          # READINESS: "is this pod ready for traffic?" If not, it is taken out of the
+          # Service until it passes. Prevents users hitting a pod that is still starting.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # LIVENESS: "is this pod stuck?" If it fails, Kubernetes restarts the container.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20

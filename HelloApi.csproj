@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!-- The project file: tells .NET what to build and which packages (libraries) to use. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>   <!-- .NET 8 (long-term support) -->
+    <Nullable>enable</Nullable>                 <!-- compiler warns about possible null mistakes -->
+    <ImplicitUsings>enable</ImplicitUsings>     <!-- common "using" lines are added automatically -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />                                  <!-- Swagger test page -->
+    <PackageReference Include="Azure.Identity" Version="1.12.0" />                                          <!-- DefaultAzureCredential (login) -->
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.3.2" />        <!-- read Key Vault as configuration -->
+  </ItemGroup>
+
+</Project>

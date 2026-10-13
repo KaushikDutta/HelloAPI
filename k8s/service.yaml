@@ -1,0 +1,26 @@
+# SERVICEACCOUNT: the pod's identity INSIDE Kubernetes.
+# The annotation links it to an Azure identity, so Azure trusts the pod (workload identity).
+# REPLACE the client-id with your identity's client ID in Stage 5b.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: helloapi-sa
+  annotations:
+    azure.workload.identity/client-id: "<MANAGED_IDENTITY_CLIENT_ID>"
+---
+# SERVICE: a stable address in front of the pods.
+# WHY: pods come and go and their IP addresses change. The Service keeps one steady address
+# and spreads traffic across the healthy pods (load balancing).
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloapi
+spec:
+  # LoadBalancer asks Azure for a public IP. This is a LEARNING setup so APIM and you can
+  # reach the API. In production the backend would stay private.
+  type: LoadBalancer
+  selector:
+    app: helloapi          # send traffic to pods with this label
+  ports:
+    - port: 80             # the port callers use
+      targetPort: 8080     # the port inside the container

@@ -1,0 +1,29 @@
+<!-- APIM POLICY: rules the gateway applies to every call, before and after your backend.
+     Paste into: APIM, APIs, HelloApi, All operations, Inbound processing, the code icon.
+     Policies run in four stages: inbound (request arrives), backend (call your API),
+     outbound (response leaves), on-error (something failed). -->
+<policies>
+    <inbound>
+        <!-- base means: also run any policy defined at a higher level -->
+        <base />
+        <!-- RATE LIMIT: at most 10 calls per 60 seconds per caller IP.
+             WHY: protects the backend from abuse and traffic spikes. Extra calls get 429. -->
+        <rate-limit-by-key calls="10" renewal-period="60"
+                           counter-key="@(context.Request.IpAddress)" />
+        <!-- Add a header on the request so you can see that the gateway handled it. -->
+        <set-header name="X-Served-Via" exists-action="override">
+            <value>APIM</value>
+        </set-header>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+        <!-- SECURITY: hide details of the backend technology from callers. -->
+        <set-header name="X-Powered-By" exists-action="delete" />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
